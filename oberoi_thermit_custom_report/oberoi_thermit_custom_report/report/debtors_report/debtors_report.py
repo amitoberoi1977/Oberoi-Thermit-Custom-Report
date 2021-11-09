@@ -237,10 +237,10 @@ WHERE sales_order=%s
 	
 
 def get_payment_details(order):
-	order_data = frappe.db.sql("""SELECT sum(p.paid_amount+
-             (SELECT sum(amount)
+	order_data = frappe.db.sql("""SELECT sum(ifnull(p.paid_amount,0)+
+             (SELECT ifnull(sum(amount),0)
               FROM `tabPayment Entry Deduction`
-              WHERE parent=p.name)+p.sd_amount+p.sd_amount_1_percent) AS 'payment_amount'
+              WHERE parent=p.name)+ifnull(p.sd_amount,0)+ifnull(p.sd_amount_1_percent,0)) AS 'payment_amount'
 FROM `tabPayment Entry` AS p
 WHERE p.sales_order=%s
   AND p.docstatus=1
