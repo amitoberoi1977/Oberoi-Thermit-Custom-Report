@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include oberoi_thermit_custom_report *.css
+recursive-include oberoi_thermit_custom_report *.csv
+recursive-include oberoi_thermit_custom_report *.html
+recursive-include oberoi_thermit_custom_report *.ico
+recursive-include oberoi_thermit_custom_report *.js
+recursive-include oberoi_thermit_custom_report *.json
+recursive-include oberoi_thermit_custom_report *.md
+recursive-include oberoi_thermit_custom_report *.png
+recursive-include oberoi_thermit_custom_report *.py
+recursive-include oberoi_thermit_custom_report *.svg
+recursive-include oberoi_thermit_custom_report *.txt
+recursive-exclude oberoi_thermit_custom_report *.pyc
