@@ -9,7 +9,9 @@ def get_data():
 				{
 					"type": "report",
 					"name": "Debtors Report",
-					"doctype": "Sales Order"				}
+					"doctype": "Sales Order",
+					"is_query_report": True			
+				}
 			]
 		}
     ]
