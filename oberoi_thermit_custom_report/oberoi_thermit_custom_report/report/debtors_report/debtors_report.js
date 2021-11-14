@@ -48,17 +48,23 @@ frappe.query_reports["Debtors Report"] = {
 	],
 	"formatter": function (value, row, column, data, default_formatter) {
 		// console.log(data)
+		// console.log(column)
 		if (column.fieldname == "warehouse_details" && data) {
 			value = "Click Here";
 			column.link_onclick = "frappe.query_reports['Debtors Report'].set_route_to_stock_balance(" + JSON.stringify(data) + ")";
 		}
 		if (column.fieldname == "pi_details" && data) {
 			value = "Click Here";
+			console.log(frappe.query_reports['Debtors Report'].set_route_to_pi_list(" + JSON.stringify(data) + "))
 			column.link_onclick = "frappe.query_reports['Debtors Report'].set_route_to_pi_list(" + JSON.stringify(data) + ")";	
 		}
 		if (column.fieldname == "si_details" && data) {
 			value = "Click Here";
 			column.link_onclick = "frappe.query_reports['Debtors Report'].set_route_to_si_list(" + JSON.stringify(data) + ")";	
+		}
+		if (column.fieldname == "payment_entry_link" && data) {
+			value = "Click Here";
+			column.link_onclick = "frappe.query_reports['Debtors Report'].set_route_to_pe_list(" + JSON.stringify(data) + ")";	
 		}
 		value = default_formatter(value, row, column, data);
 		return value;
@@ -88,6 +94,15 @@ frappe.query_reports["Debtors Report"] = {
 				"sales_order": data["sales_order"]
 			};
 			frappe.set_route("List", "Sales Invoice");
+		}
+	},
+	"set_route_to_pe_list": function(data) {
+		if(data["sales_order"]) {
+			frappe.route_options = {
+				"sales_order": data["sales_order"],
+				"payment_type": "Receive"
+			};
+			frappe.set_route("List", "Payment Entry");
 		}
 	}
 };

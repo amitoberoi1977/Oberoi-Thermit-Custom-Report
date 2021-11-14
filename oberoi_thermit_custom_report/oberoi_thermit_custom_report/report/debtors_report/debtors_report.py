@@ -108,6 +108,12 @@ def get_columns(filters=None):
 			"fieldtype": "Currency"
 		},
 		{
+			"label": _("Payment Details"),
+			"fieldname": "payment_entry_link",
+			"fieldtype": "Link",
+			"options":"Payment Entry"
+		},
+		{
 			"label": _("Balance To Receive As Per Payment Terms"),
 			"fieldname": "balance_to_receive",
 			"fieldtype": "Currency"
@@ -122,6 +128,13 @@ def get_columns(filters=None):
 			"fieldname": "warehouse",
 			"fieldtype": "Data",
 			"hidden":1
+		},
+		{
+			"label": _("Sales Order"),
+			"fieldname": "sales_order_end",
+			"fieldtype": "Link",
+			"options": "Sales Order",
+			"width": 150
 		}
 
 	
@@ -154,13 +167,15 @@ def get_data(filters):
        '' AS 'total_receivable_unclaimed',
        '' AS 'balance_to_claim',
        '' AS 'total_payment_received',
+	   'Click Here' AS 'payment_entry_link',
        '' AS 'balance_to_receive_as_per_terms',
        '' AS 'actual_balance_to_receive',
 
   (SELECT name
    FROM `tabWarehouse`
    WHERE sales_order=so.name
-   LIMIT 1) AS 'warehouse'
+   LIMIT 1) AS 'warehouse',
+    so.name AS 'sales_order_end'
 FROM `tabSales Order` AS so
 WHERE so.docstatus<>2 %s""" % conditions,filters,as_list=1)
 	get_other_details(sales_order_data)
@@ -211,11 +226,11 @@ def get_other_details(order_data):
 		order[14] = flt(order[13],0) - flt(order[12],0) #Balance to Claim
 		order[15] = get_payment_details(order) #Total Payment Received
 		if order[15]:
-			order[16] = order[12] - order[15] #Balance To receive As per Payment Terms
-			order[17] = order[13] - order[15] #Actual Balance to Receive (Incl Unclaimed)
+			order[17] = order[12] - order[15] #Balance To receive As per Payment Terms
+			order[18] = order[13] - order[15] #Actual Balance to Receive (Incl Unclaimed)
 		else:
-			order[16] = order[12] #Balance To receive As per Payment Terms
-			order[17] = order[13] #Actual Balance to Receive (Incl Unclaimed)
+			order[17] = order[12] #Balance To receive As per Payment Terms
+			order[18] = order[13] #Actual Balance to Receive (Incl Unclaimed)
 
 
 
