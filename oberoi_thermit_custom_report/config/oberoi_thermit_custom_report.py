@@ -11,6 +11,12 @@ def get_data():
 					"name": "Debtors Report",
 					"doctype": "Sales Order",
 					"is_query_report": True			
+				},
+				{
+					"type": "report",
+					"name": "Order Wise Ledger",
+					"doctype": "Sales Order",
+					"is_query_report": True			
 				}
 			]
 		}
