@@ -10,6 +10,10 @@ from frappe.utils import flt, cstr
 def execute(filters=None):
     columns, data = [], []
     columns = get_columns(filters)
+    if filters.get('soa_as_per_pi') == 1:
+        columns[6]["hidden"] = 1
+    if filters.get('soa_as_per_si') == 1:
+        columns[5]["hidden"] = 1
     data = get_data(filters)
     return columns, data
 
