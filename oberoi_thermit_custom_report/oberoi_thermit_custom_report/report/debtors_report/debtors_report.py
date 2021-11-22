@@ -241,9 +241,9 @@ def get_other_details(order_data):
             order[12] = 0  # Total PI receivables
         order[13] = order[11]  # Total SI receivables
         # Total Receivables (Claimed)
-        order[14] = flt(order[12], 0) + flt(order[13], 0) + flt(order[5],0)
+        order[14] = flt(order[12], 0) + flt(order[13], 0) + flt(order[4],0)
         # Total Receivables (Including Unclaimed)
-        order[15] = flt(order[11], 0) + warehouse_balance + + flt(order[5],0)
+        order[15] = flt(order[11], 0) + warehouse_balance + flt(order[4],0) - flt(order[5],0)
         order[16] = flt(order[15], 0) - flt(order[14], 0)  # Balance to Claim
         order[17] = get_payment_details(order)  # Total Payment Received
         if order[17]:
