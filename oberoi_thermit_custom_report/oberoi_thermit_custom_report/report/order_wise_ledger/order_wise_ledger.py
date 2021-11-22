@@ -13,11 +13,14 @@ def execute(filters=None):
     if filters.get('soa_as_per_pi') == 1:
         columns[6]["hidden"] = 1
         columns[3]["hidden"] = 1
+        data = get_data(filters)
+        # return columns, data
     if filters.get('soa_as_per_si') == 1:
         columns[5]["hidden"] = 1
         columns[2]["hidden"] = 1
-    data = get_data(filters)
+        data = get_data(filters)
     return columns, data
+
 
 
 def get_columns(filters=None):
@@ -84,13 +87,23 @@ def get_columns(filters=None):
 
 def get_data(filters):
     conditions = get_conditions(filters)
+    if filters.get('soa_as_per_si') == 1 and filters.get('soa_as_per_pi') == 1:
+        frappe.throw("SOA As Per SI/SOA As Per PI Select Only One")
     data = []
     if not filters.get('soa_as_per_si') == 1:
         proforma = get_proforma_invoice(conditions, filters)
+        jv_debit = get_debit(filters)
+        jv_credit = get_credit(filters)
         data.extend(proforma)
+        data.extend(jv_debit)
+        data.extend(jv_credit)
     if not filters.get('soa_as_per_pi') == 1:
         invoices = get_sales_incoice(conditions, filters)
+        jv_debit = get_debit(filters)
+        # jv_credit = get_credit(filters)
         data.extend(invoices)
+        data.extend(jv_debit)
+        # data.extend(jv_credit)
     pe_details = get_payment_entry(filters)
     data.extend(pe_details)
     final_data = sorted(data, key=lambda i: i['date'])
@@ -166,3 +179,44 @@ def get_conditions(filters, pe=False):
         else:
             conditions += " and sales_order=%(selected)s"
     return conditions
+
+
+def get_debit(filters):
+    conditions = " and jva.debit>0 and jv.docstatus<>2"
+    if filters.get('select_by') == "Customer":
+        conditions += " and jva.party=%(selected)s"
+    if filters.get('select_by') == "Sales Order":
+        conditions += " and jv.sales_order=%(selected)s"
+    fields = ""
+    if filters.get("soa_as_per_si"):
+        fields += "jv.posting_date as 'date',jv.sales_order,'' as 'pi_no',jv.name as 'invoice_no','' as 'payment_entry_no','' as 'payment_claimed_pi',jva.debit as 'payment_claimed_si','' as 'payment_received','' as 'balance'"
+    if filters.get("soa_as_per_pi"):
+        fields += "jv.posting_date as 'date',jv.sales_order,jv.name as 'pi_no','' as 'invoice_no','' as 'payment_entry_no',jva.debit as 'payment_claimed_pi','' as 'payment_claimed_si','' as 'payment_received','' as 'balance'"
+    opening_data = frappe.db.sql(
+        """SELECT {fields}
+FROM `tabJournal Entry` AS jv
+INNER JOIN `tabJournal Entry Account` AS jva ON jv.name=jva.parent
+WHERE jva.party_type='Customer'
+  AND jv.customer_group='Private'
+  AND jv.is_opening='Yes' {conditions}""".format(fields=fields,conditions=conditions),filters, as_dict=1)
+    return opening_data
+
+def get_credit(filters):
+    conditions = " and jva.credit>0 and jv.docstatus<>2"
+    if filters.get('select_by') == "Customer":
+        conditions += " and jva.party=%(selected)s"
+    if filters.get('select_by') == "Sales Order":
+        conditions += " and jv.sales_order=%(selected)s"
+    fields = ""
+    if filters.get("soa_as_per_si"):
+        fields += "jv.posting_date as 'date',jv.sales_order,'' as 'pi_no','' as 'invoice_no',jv.name as 'payment_entry_no','' as 'payment_claimed_pi','' as 'payment_claimed_si',jva.credit as 'payment_received','' as 'balance'"
+    if filters.get("soa_as_per_pi"):
+        fields += "jv.posting_date as 'date',jv.sales_order,'' as 'pi_no','' as 'invoice_no',jv.name as 'payment_entry_no','' as 'payment_claimed_pi','' as 'payment_claimed_si',jva.credit as 'payment_received','' as 'balance'"
+    opening_data = frappe.db.sql(
+        """SELECT {fields}
+FROM `tabJournal Entry` AS jv
+INNER JOIN `tabJournal Entry Account` AS jva ON jv.name=jva.parent
+WHERE jva.party_type='Customer'
+  AND jv.customer_group='Private'
+  AND jv.is_opening='Yes' {conditions}""".format(fields=fields,conditions=conditions),filters, as_dict=1)
+    return opening_data

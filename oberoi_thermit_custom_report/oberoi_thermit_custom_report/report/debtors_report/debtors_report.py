@@ -43,6 +43,18 @@ def get_columns(filters=None):
             "width": 150
         },
         {
+            "label": _("Opening Debit Balance"),
+            "fieldname": "opening_debit_balance",
+            "fieldtype": "Currency",
+            "width": 150
+        },
+        {
+            "label": _("Opening Credit Balance"),
+            "fieldname": "opening_credit_balance",
+            "fieldtype": "Currency",
+            "width": 150
+        },
+        {
             "label": _("Warehouse Details"),
             "fieldname": "warehouse_details",
             "fieldtype": "Link",
@@ -138,7 +150,6 @@ def get_columns(filters=None):
             "width": 150
         }
 
-
     ]
 
 
@@ -148,6 +159,8 @@ def get_data(filters):
        so.customer_group AS 'customer_group',
        so.business_line AS 'business_line',
        so.customer_name AS 'customer_name',
+       '' As 'opening_debit_balance',
+       '' As 'opening_credit_balance',
        'Click Here' AS 'warehouse_details',
        '' AS 'amount',
        'Click Here' AS 'pi_details',
@@ -217,28 +230,30 @@ def get_other_details(order_data):
     for order in order_data:
         items = frappe.get_doc("Sales Order", order[0]).items
         warehouse_balance = get_warehouse_balance_qty(order[0], items)
-        order[5] = warehouse_balance
+        opening_debit,opening_credit = get_opening_balance(order[0])
+        order[4]= opening_debit
+        order[5]= opening_credit
+        order[7] = warehouse_balance
 
-        if flt(order[7], 0) > 0:
-            order[10] = order[7] - flt(order[9], 0)  # Total PI receivables
+        if flt(order[9], 0) > 0:
+            order[12] = order[9] - flt(order[11], 0)  # Total PI receivables
         else:
-            order[10] = 0  # Total PI receivables
-        order[11] = order[9]  # Total SI receivables
+            order[12] = 0  # Total PI receivables
+        order[13] = order[11]  # Total SI receivables
         # Total Receivables (Claimed)
-        order[12] = flt(order[10], 0) + flt(order[11], 0)
+        order[14] = flt(order[12], 0) + flt(order[13], 0) + flt(order[5],0)
         # Total Receivables (Including Unclaimed)
-        order[13] = flt(order[9], 0) + warehouse_balance
-        order[14] = flt(order[13], 0) - flt(order[12], 0)  # Balance to Claim
-        order[15] = get_payment_details(order)  # Total Payment Received
-        if order[15]:
+        order[15] = flt(order[11], 0) + warehouse_balance + + flt(order[5],0)
+        order[16] = flt(order[15], 0) - flt(order[14], 0)  # Balance to Claim
+        order[17] = get_payment_details(order)  # Total Payment Received
+        if order[17]:
             # Balance To receive As per Payment Terms
-            order[17] = order[12] - order[15]
+            order[19] = order[14] - order[17]
             # Actual Balance to Receive (Incl Unclaimed)
-            order[18] = order[13] - order[15]
+            order[20] = order[15] - order[17]
         else:
-            order[17] = order[12]  # Balance To receive As per Payment Terms
-            order[18] = order[13]  # Actual Balance to Receive (Incl Unclaimed)
-
+            order[19] = order[14]  # Balance To receive As per Payment Terms
+            order[20] = order[15]  # Actual Balance to Receive (Incl Unclaimed)
 
 def get_warehouse_balance_qty(order, items):
     '''get billing warehouse value which is linked with sales order'''
@@ -254,9 +269,15 @@ WHERE sales_order=%s
             if item.rate > 0:
                 for warehouse in warehouses:
                     total_balance_value += flt(get_stock_balance(
-                        item.item_code, warehouse.name)) * item.rate
+                        item.item_code, warehouse.name)) * get_tax_rate(order,item.rate)
     return total_balance_value
 
+def get_tax_rate(order,rate):
+    tax = frappe.db.sql("""select rate from `tabSales Taxes and Charges` where parent=%s and charge_type='On Net Total'""",order,as_dict=1)
+    if len(tax) >= 1:
+        if tax[0].rate:
+            rate = rate + rate * flt(tax[0].rate)/100
+    return rate
 
 def get_payment_details(order):
     order_data = frappe.db.sql("""SELECT sum(ifnull(p.paid_amount,0)+
@@ -271,3 +292,21 @@ WHERE p.sales_order=%s
         return order_data[0].payment_amount
     else:
         return 0
+
+
+def get_opening_balance(order):
+    opening_data = frappe.db.sql(
+        """SELECT ifnull(sum(jva.debit),0) as 'debit',ifnull(sum(jva.credit),0) as 'credit'
+FROM `tabJournal Entry` AS jv
+INNER JOIN `tabJournal Entry Account` AS jva ON jv.name=jva.parent
+WHERE jva.party_type='Customer'
+  AND jv.customer_group='Private'
+  AND jv.is_opening='Yes'
+  AND jv.sales_order=%s""", order, as_dict=1)
+    opening_debit = opening_credit = 0
+    if len(opening_data) >= 1:
+        if opening_data[0].debit:
+            opening_debit = flt(opening_data[0].debit,0)
+        if opening_data[0].credit:
+            opening_credit = flt(opening_data[0].credit,0)
+    return opening_debit,opening_credit
