@@ -261,7 +261,7 @@ def get_warehouse_balance_qty(order, items):
     warehouses = frappe.db.sql("""SELECT name
 FROM `tabWarehouse`
 WHERE sales_order=%s
-  AND is_group=0""", order, as_dict=1)
+  AND is_group=0 AND name like %s""", (order,'Billing%'), as_dict=1,debug=1)
 
     total_balance_value = 0
     if len(warehouses) >= 1:
@@ -273,7 +273,7 @@ WHERE sales_order=%s
     return total_balance_value
 
 def get_tax_rate(order,rate):
-    tax = frappe.db.sql("""select rate from `tabSales Taxes and Charges` where parent=%s and charge_type='On Net Total'""",order,as_dict=1)
+    tax = frappe.db.sql("""select rate from `tabSales Taxes and Charges` where parent=%s and charge_type='On Net Total' and included_in_print_rate=0""",order,as_dict=1)
     if len(tax) >= 1:
         if tax[0].rate:
             rate = rate + rate * flt(tax[0].rate)/100
@@ -287,7 +287,7 @@ def get_payment_details(order):
 FROM `tabPayment Entry` AS p
 WHERE p.sales_order=%s
   AND p.docstatus=1
-  AND p.payment_type='Receive'""", order[0], as_dict=1)
+  AND p.payment_type='Receive' AND p.name not like %s And p.name not like %s""", (order[0],'PEEMD%','PESDEMD%'), as_dict=1)
     if len(order_data) >= 1:
         return order_data[0].payment_amount
     else:
