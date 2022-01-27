@@ -165,7 +165,7 @@ def get_data(filters):
        '' AS 'amount',
        'Click Here' AS 'pi_details',
 
-  (SELECT sum(grand_total_to_pay_now)
+  (SELECT sum(total_including_tax)
    FROM `tabProforma Invoice`
    WHERE docstatus=1
      AND sales_order=so.name) AS 'total_pi_amount',
