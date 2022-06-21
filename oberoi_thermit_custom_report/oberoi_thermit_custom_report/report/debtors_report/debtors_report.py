@@ -289,10 +289,28 @@ WHERE p.sales_order=%s
   AND p.docstatus=1
   AND p.payment_type='Receive' AND p.name not like %s And p.name not like %s""", (order[0],'PEEMD%','PESDEMD%'), as_dict=1)
     if len(order_data) >= 1:
-        return order_data[0].payment_amount
+        payment_amount = flt(order_data[0].payment_amount)
+        payment_amount = payment_amount + flt(get_transfer_amount_deduct(order[0]))
+        payment_amount = payment_amount + flt(get_transfer_amount_add(order[0]))
+
+        return payment_amount
     else:
         return 0
 
+
+def get_transfer_amount_deduct(sales_order):
+    payment_transfer = frappe.db.sql("""select sum(amount)*-1 as 'amount' from `tabPayment Transfer From One Order To Another` where from_sales_order=%s and docstatus=1""",sales_order,as_dict=1)
+    if len(payment_transfer) >= 1:
+        return payment_transfer[0].amount
+    else:
+        return 0
+
+def get_transfer_amount_add(sales_order):
+    payment_transfer = frappe.db.sql("""select sum(amount) as 'amount' from `tabPayment Transfer From One Order To Another` where to_sales_order=%s and docstatus=1""",sales_order,as_dict=1)
+    if len(payment_transfer) >= 1:
+        return payment_transfer[0].amount
+    else:
+        return 0
 
 def get_opening_balance(order):
     opening_data = frappe.db.sql(

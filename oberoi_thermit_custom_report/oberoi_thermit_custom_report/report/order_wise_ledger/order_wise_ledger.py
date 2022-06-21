@@ -106,6 +106,10 @@ def get_data(filters):
         data.extend(jv_credit)
     pe_details = get_payment_entry(filters)
     data.extend(pe_details)
+    pt_deduct = get_payment_transfer_deduct(filters)
+    pt_add = get_payment_transfer_add(filters)
+    data.extend(pt_deduct)
+    data.extend(pt_add)
     final_data = sorted(data, key=lambda i: i['date'])
     return update_balance(final_data,filters)
 
@@ -140,6 +144,7 @@ def update_balance(data,filters):
     return data
 
 
+
 def get_proforma_invoice(conditions, filters):
     proforma_invoice_details = frappe.db.sql(
         """select posting_date as 'date',sales_order,name as 'pi_no','' as 'invoice_no','' as 'payment_entry_no',grand_total_to_pay_now as 'payment_claimed_pi','' as 'payment_claimed_si','' as 'payment_received','' as 'balance' from `tabProforma Invoice` where docstatus<>2 %s""" % conditions, filters, as_dict=1)
@@ -161,7 +166,42 @@ def get_payment_entry(filters):
 FROM `tabPayment Entry` AS p
 WHERE p.docstatus=1
   AND p.payment_type='Receive' %s group by p.name""" % conditions, filters, as_dict=1)
+
     return pe_details
+
+
+def get_payment_transfer_deduct(filters):
+    conditions = get_conditions_payment_transfer_deduct(filters)
+    payment_trans_details = frappe.db.sql(
+        """SELECT date AS 'date',
+       from_sales_order AS 'sales_order',
+       '' AS 'pi_no',
+       '' AS 'invoice_no',
+       '' AS 'payment_entry_no',
+       '' AS 'payment_claimed_pi',
+       '' AS 'payment_claimed_si',
+       amount*-1 AS 'payment_received',
+       '' AS 'balance'
+FROM `tabPayment Transfer From One Order To Another`
+WHERE docstatus<>2 {0}""".format(conditions),as_dict=1)
+    frappe.errprint(payment_trans_details)
+    return payment_trans_details
+
+def get_payment_transfer_add(filters):
+    conditions = get_conditions_payment_transfer_add(filters)
+    sales_invoice_details = frappe.db.sql(
+        """SELECT date AS 'date',
+       to_sales_order AS 'sales_order',
+       '' AS 'pi_no',
+       '' AS 'invoice_no',
+       '' AS 'payment_entry_no',
+       '' AS 'payment_claimed_pi',
+       '' AS 'payment_claimed_si',
+       amount AS 'payment_received',
+       '' AS 'balance'
+FROM `tabPayment Transfer From One Order To Another`
+WHERE docstatus<>2 {0}""".format(conditions),as_dict=1)
+    return sales_invoice_details
 
 
 def get_conditions(filters, pe=False):
@@ -180,6 +220,22 @@ def get_conditions(filters, pe=False):
             conditions += " and sales_order=%(selected)s"
     return conditions
 
+
+def get_conditions_payment_transfer_deduct(filters, pe=False):
+    conditions = ""
+    if filters.get('select_by') == "Customer":
+        conditions += " and from_customer='{0}'".format(filters.get('selected'))
+    if filters.get('select_by') == "Sales Order":
+        conditions += " and from_sales_order='{0}'".format(filters.get('selected'))
+    return conditions
+
+def get_conditions_payment_transfer_add(filters, pe=False):
+    conditions = ""
+    if filters.get('select_by') == "Customer":
+        conditions += " and to_customer='{0}'".format(filters.get('selected'))
+    if filters.get('select_by') == "Sales Order":
+        conditions += " and to_sales_order='{0}'".format(filters.get('selected'))
+    return conditions
 
 def get_debit(filters):
     conditions = " and jva.debit>0 and jv.docstatus<>2"
