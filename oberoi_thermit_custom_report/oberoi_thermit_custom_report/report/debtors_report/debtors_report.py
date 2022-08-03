@@ -159,8 +159,8 @@ def get_data(filters):
        so.customer_group AS 'customer_group',
        so.business_line AS 'business_line',
        so.customer_name AS 'customer_name',
-       '' As 'opening_debit_balance',
-       '' As 'opening_credit_balance',
+       '' AS 'opening_debit_balance',
+       '' AS 'opening_credit_balance',
        'Click Here' AS 'warehouse_details',
        '' AS 'amount',
        'Click Here' AS 'pi_details',
@@ -181,7 +181,7 @@ def get_data(filters):
        '' AS 'total_receivable_unclaimed',
        '' AS 'balance_to_claim',
        '' AS 'total_payment_received',
-	   'Click Here' AS 'payment_entry_link',
+       'Click Here' AS 'payment_entry_link',
        '' AS 'balance_to_receive_as_per_terms',
        '' AS 'actual_balance_to_receive',
 
@@ -189,7 +189,18 @@ def get_data(filters):
    FROM `tabWarehouse`
    WHERE sales_order=so.name
    LIMIT 1) AS 'warehouse',
-    so.name AS 'sales_order_end'
+       so.name AS 'sales_order_end',
+
+  (SELECT sum(dn.grand_total)
+   FROM `tabDelivery Note` AS dn
+   WHERE dn.docstatus=1
+     AND dn.sales_order=so.name
+     AND dn.invoice_sending_with_material='NO'
+     AND NOT EXISTS
+       (SELECT si.name
+        FROM `tabSales Invoice` AS si
+        INNER JOIN `tabSales Invoice Item` AS sii on si.name=sii.parent
+        WHERE sii.delivery_note=dn.name and si.docstatus=1)) AS 'delivery_total'
 FROM `tabSales Order` AS so
 WHERE so.docstatus<>2 %s""" % conditions, filters, as_list=1)
     get_other_details(sales_order_data)
@@ -234,6 +245,7 @@ def get_other_details(order_data):
         order[4]= opening_debit
         order[5]= opening_credit
         order[7] = warehouse_balance
+        order[11] = flt(order[11], 0) + flt(order[23],0)
 
         if flt(order[9], 0) > 0:
             order[12] = order[9] - flt(order[11], 0)  # Total PI receivables
