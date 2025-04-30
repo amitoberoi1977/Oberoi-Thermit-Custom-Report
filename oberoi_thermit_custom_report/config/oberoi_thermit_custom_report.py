@@ -19,5 +19,15 @@ def get_data():
 					"is_query_report": True			
 				}
 			]
+		},
+	    {
+			"label": _("Transactions"),
+			"items": [
+                {
+                    "type": "doctype",
+                    "name": "Work Progress Entry",
+                    "label": _("Work Progress Entry"),
+                },
+			]
 		}
     ]

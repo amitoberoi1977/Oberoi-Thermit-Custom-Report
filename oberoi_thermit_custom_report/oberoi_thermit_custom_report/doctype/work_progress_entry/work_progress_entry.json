@@ -2,6 +2,7 @@
  "autoname": "format:WPE-{date_to}-{order_no}-{##}",
  "creation": "2025-04-23 00:02:18.784616",
  "doctype": "DocType",
+ "document_type": "Other",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
@@ -127,7 +128,7 @@
   }
  ],
  "is_submittable": 1,
- "modified": "2025-05-01 01:00:21.700096",
+ "modified": "2025-05-01 01:42:04.093530",
  "modified_by": "Administrator",
  "module": "Oberoi Thermit Custom Report",
  "name": "Work Progress Entry",
