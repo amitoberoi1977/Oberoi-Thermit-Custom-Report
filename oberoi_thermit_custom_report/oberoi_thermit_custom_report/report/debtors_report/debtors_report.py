@@ -164,13 +164,22 @@ def get_data(filters):
        'Click Here' AS 'warehouse_details',
        '' AS 'amount',
        'Click Here' AS 'pi_details',
-
-  (SELECT sum(total_including_tax)
-   FROM `tabProforma Invoice`
-   WHERE docstatus=1
-     AND sales_order=so.name) AS 'total_pi_amount',
+    (
+        IFNULL((
+            SELECT SUM(pi.total_including_tax)
+            FROM `tabProforma Invoice` pi
+            WHERE pi.docstatus = 1
+            AND pi.sales_order = so.name
+        ), 0) 
+        - 
+        IFNULL((
+            SELECT SUM(ptf.amount)
+            FROM `tabPayment Transfer From One Order To Another` ptf
+            WHERE ptf.from_sales_order = so.name
+            AND ptf.docstatus = 1
+        ), 0)
+    ) AS `total_pi_amount`,
        'Click Here' AS 'si_details',
-
   (SELECT sum(grand_total)
    FROM `tabSales Invoice`
    WHERE docstatus=1
@@ -332,6 +341,7 @@ INNER JOIN `tabJournal Entry Account` AS jva ON jv.name=jva.parent
 WHERE jva.party_type='Customer'
   AND jv.customer_group='Private'
   AND jv.is_opening='Yes'
+  AND jv.docstatus=1
   AND jv.sales_order=%s""", order, as_dict=1)
     opening_debit = opening_credit = 0
     if len(opening_data) >= 1:

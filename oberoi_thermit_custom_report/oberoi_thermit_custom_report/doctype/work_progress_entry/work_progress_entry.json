@@ -1,0 +1,152 @@
+{
+ "autoname": "format:WPE-{date_to}-{order_no}-{##}",
+ "creation": "2025-04-23 00:02:18.784616",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "business_vertical",
+  "order_no",
+  "item",
+  "rate_of_item_in_sales_order",
+  "bom_no",
+  "employee",
+  "column_break_5",
+  "warehouse",
+  "no_of_welds",
+  "date_from",
+  "date_to",
+  "amended_from",
+  "is_stock_item",
+  "has_batch_no",
+  "batch_no"
+ ],
+ "fields": [
+  {
+   "fieldname": "business_vertical",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Business Vertical",
+   "options": "Business Line",
+   "reqd": 1
+  },
+  {
+   "fieldname": "order_no",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Order No",
+   "options": "Sales Order",
+   "reqd": 1
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Select",
+   "label": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "rate_of_item_in_sales_order",
+   "fieldtype": "Select",
+   "label": "Rate of item in Sales Order",
+   "reqd": 1
+  },
+  {
+   "depends_on": "bom_no",
+   "fieldname": "warehouse",
+   "fieldtype": "Link",
+   "label": "Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "no_of_welds",
+   "fieldtype": "Float",
+   "label": "No. of Welds/xings",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_from",
+   "fieldtype": "Date",
+   "label": "Date From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_to",
+   "fieldtype": "Date",
+   "label": "Date To",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Work Progress Entry",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "bom_no",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "BOM No",
+   "options": "BOM"
+  },
+  {
+   "depends_on": "eval:!doc.bom_no",
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_stock_item",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Stock Item"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_batch_no",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Has Batch No"
+  },
+  {
+   "depends_on": "has_batch_no",
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch"
+  }
+ ],
+ "is_submittable": 1,
+ "modified": "2025-05-01 01:00:21.700096",
+ "modified_by": "Administrator",
+ "module": "Oberoi Thermit Custom Report",
+ "name": "Work Progress Entry",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
