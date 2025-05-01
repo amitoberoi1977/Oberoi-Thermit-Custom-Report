@@ -1,0 +1,97 @@
+{
+ "autoname": "field:business_line",
+ "creation": "2023-11-17 19:51:04.295948",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "business_line",
+  "column_break_2",
+  "default_accounts_section",
+  "supplier_creditor_account",
+  "payroll_payable",
+  "column_break_6",
+  "stock_account",
+  "site_expense_account",
+  "default_series_section",
+  "proforma_invoice_series"
+ ],
+ "fields": [
+  {
+   "fieldname": "business_line",
+   "fieldtype": "Data",
+   "label": "Business Line",
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Default Accounts"
+  },
+  {
+   "fieldname": "supplier_creditor_account",
+   "fieldtype": "Link",
+   "label": "Supplier Creditor Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "payroll_payable",
+   "fieldtype": "Link",
+   "label": "Payroll Payable",
+   "options": "Account"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "stock_account",
+   "fieldtype": "Link",
+   "label": "Stock Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "site_expense_account",
+   "fieldtype": "Link",
+   "label": "Site Expense Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "default_series_section",
+   "fieldtype": "Section Break",
+   "label": "Default Series"
+  },
+  {
+   "description": "This series used for auto create proforma invoice from the work progress enry",
+   "fieldname": "proforma_invoice_series",
+   "fieldtype": "Data",
+   "label": "Proforma Invoice Series"
+  }
+ ],
+ "modified": "2025-05-01 09:23:55.120182",
+ "modified_by": "Administrator",
+ "module": "Oberoi Thermit Custom Report",
+ "name": "Business Line",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
