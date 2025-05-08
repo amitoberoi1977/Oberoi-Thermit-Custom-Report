@@ -127,3 +127,6 @@ app_license = "MIT"
 # 	"Task": "oberoi_thermit_custom_report.task.get_dashboard_data"
 # }
 
+fixtures = [
+    {"dt": "Custom Field", "filters": [["Custom Field","name","in",["Stock Entry-employee","Stock Entry-warehouse_entry"]]]}
+]

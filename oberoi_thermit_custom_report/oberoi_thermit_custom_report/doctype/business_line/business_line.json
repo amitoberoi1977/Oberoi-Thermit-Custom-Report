@@ -68,11 +68,11 @@
   {
    "description": "This series used for auto create proforma invoice from the work progress enry",
    "fieldname": "proforma_invoice_series",
-   "fieldtype": "Data",
+   "fieldtype": "Select",
    "label": "Proforma Invoice Series"
   }
  ],
- "modified": "2025-05-01 09:23:55.120182",
+ "modified": "2025-05-01 09:52:33.516615",
  "modified_by": "Administrator",
  "module": "Oberoi Thermit Custom Report",
  "name": "Business Line",

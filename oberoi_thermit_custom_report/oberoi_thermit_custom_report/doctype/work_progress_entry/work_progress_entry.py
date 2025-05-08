@@ -168,12 +168,12 @@ def create_proforma_invoice_custom(sales_order_name, custom_items,date,naming_se
 		item.rate = row.get("rate")
 		item.percentage_payment = 100  # Fixed at 100%
 
-		item.amount = (item.qty or 0) * (item.rate or 0)
+		item.amount = flt(item.qty or 0) * flt(item.rate or 0)
 		total += flt(item.amount)
 		actual_amount += flt(item.amount)
 
-	inspection = pi.portion_inspection_charges or 0
-	freight = pi.tentative_freight_charges or 0
+	inspection = 0
+	freight = 0
 	tax_amount = ((actual_amount + inspection + freight) * 18) / 100
 	pi.taxation_rate = "18%"
 	pi.total_tax_amount = tax_amount
