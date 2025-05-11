@@ -12,6 +12,7 @@
   "rate_of_item_in_sales_order",
   "bom_no",
   "employee",
+  "company",
   "column_break_5",
   "warehouse",
   "no_of_welds",
@@ -120,15 +121,22 @@
    "label": "Has Batch No"
   },
   {
-   "depends_on": "has_batch_no",
    "fieldname": "batch_no",
    "fieldtype": "Link",
    "label": "Batch No",
    "options": "Batch"
+  },
+  {
+   "fetch_from": "order_no.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
- "modified": "2025-05-01 01:42:04.093530",
+ "modified": "2025-05-11 19:24:05.496823",
  "modified_by": "Administrator",
  "module": "Oberoi Thermit Custom Report",
  "name": "Work Progress Entry",
@@ -145,9 +153,34 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "amend": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "PC-ATW",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "PC-CMS",
+   "share": 1,
+   "submit": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
- "sort_order": "DESC",
- "track_changes": 1
+ "sort_order": "DESC"
 }

@@ -38,7 +38,7 @@ class WorkProgressEntry(Document):
 					"rate": self.rate_of_item_in_sales_order
 				}
 			]
-			create_proforma_invoice_custom(self.order_no,items,self.date_to,proforma_invoice_naming_series,self.name)
+			create_proforma_invoice_custom(self.order_no,items,self.date_to,proforma_invoice_naming_series,self.name,self.employee)
 		elif self.bom_no:
 			source_warehouse = self.warehouse
 			target_warehouse = frappe.db.get_value("Warehouse",{"warehouse_type":"Billing","sales_order":self.order_no},"name")
@@ -48,7 +48,7 @@ class WorkProgressEntry(Document):
 				doctype = "Stock Entry",
 				stock_entry_type = "Manufacture",
 				purpose = "Manufacture",
-				company = "Oberoi Thermit Pvt. Ltd.",
+				company = self.company,
 				set_posting_time = 1,
 				posting_date = self.date_to,
 				posting_time = nowtime(),
@@ -74,6 +74,7 @@ class WorkProgressEntry(Document):
 			stock_entry_doc = frappe.get_doc(dict(
 				doctype = "Stock Entry",
 				stock_entry_type = "Material Receipt",
+				company = self.company,
 				purpose = "Material Receipt",
 				warehouse_entry = self.name,
 				set_posting_time = 1,
@@ -128,7 +129,7 @@ def get_bom_no(item):
 	else:
 		return False
 	
-def create_proforma_invoice_custom(sales_order_name, custom_items,date,naming_series,work_progress_entry):
+def create_proforma_invoice_custom(sales_order_name, custom_items,date,naming_series,work_progress_entry,employee=None):
 	"""
 	custom_items = [
 		{
@@ -153,6 +154,7 @@ def create_proforma_invoice_custom(sales_order_name, custom_items,date,naming_se
 	pi.payment_terms_template = so.payment_terms_template
 	pi.posting_date = date
 	pi.posting_time = nowtime()
+	pi.employee = employee
 	pi.payment_type = "Payment after execution"
 
 	actual_amount = 0
