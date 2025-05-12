@@ -16,7 +16,21 @@ class WorkProgressEntry(Document):
 	def set_item_details(self):
 		item_doc = frappe.get_doc("Item",self.item)
 		self.is_stock_item = cint(item_doc.get("is_stock_item")) or 0
-		self.has_batch_no = cint(item_doc.get("has_batch_no")) or 0
+		bom_no = get_bom_no(self.item)
+		if bom_no:
+			self.bom_no = bom_no
+			self.set_batch_items()
+		if not self.batch_item:
+			self.has_batch_no = cint(item_doc.get("has_batch_no")) or 0
+			self.batch_item = self.item
+
+	def set_batch_items(self):
+		batch_doc = frappe.get_doc("BOM",self.bom_no)
+		for row in batch_doc.items:
+			if cint(frappe.db.get_value("Item",row.item_code,"has_batch_no")) == 1:
+				self.batch_item = row.item_code
+				self.has_batch_no = 1
+				break
 
 	def validate_warehouse_field(self):
 		if self.bom_no:
@@ -62,9 +76,15 @@ class WorkProgressEntry(Document):
 			))
 			stock_entry_doc.get_items()
 			for row in stock_entry_doc.items:
-				if row.item_code == self.item:
-					row.batch_no = self.batch_no
-					break
+				if self.has_batch_no:
+					if self.batch_item:
+						if row.item_code == self.batch_item:
+							row.batch_no = self.batch_no
+							break
+					else:
+						if row.item_code == self.batch_item:
+							row.batch_no = self.batch_no
+							break
 			stock_entry_doc.flags.ignore_permissions = True
 			stock_entry_doc.submit()
 		elif self.employee:

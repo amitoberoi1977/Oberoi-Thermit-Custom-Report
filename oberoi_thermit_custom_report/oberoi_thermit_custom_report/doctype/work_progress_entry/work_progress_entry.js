@@ -42,7 +42,7 @@ frappe.ui.form.on('Work Progress Entry', {
 		frm.set_query("batch_no", function () {
 			return {
 				filters: [
-					["item", "=", frm.doc.item]
+					["item", "=", frm.doc.batch_item]
 				]
 			}
 		});
@@ -68,15 +68,11 @@ frappe.ui.form.on('Work Progress Entry', {
 	},
 	set_bom_no: function(frm,cdt,cdn) {
 		if(frm.doc.item) {
-			frappe.call({
-				method:"oberoi_thermit_custom_report.oberoi_thermit_custom_report.doctype.work_progress_entry.work_progress_entry.get_bom_no",
-				args:{"item":frm.doc.item},
+			frm.call({
+				method:"set_item_details",
+				doc:frm.doc,
 				callback:function(r){
-					if(r.message) {
-						frappe.model.set_value(cdt,cdn,"bom_no",r.message)
-					}else{
-						frappe.model.set_value(cdt,cdn,"bom_no","")
-					}
+
 				}
 			})
 		}

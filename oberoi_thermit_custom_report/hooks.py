@@ -130,6 +130,18 @@ app_license = "MIT"
 fixtures = [
     {"dt": "Custom Field", "filters": [["Custom Field","name","in",["Stock Entry-employee","Stock Entry-warehouse_entry"]]]},
     {
+        "doctype": "Custom Script",
+        "filters": [
+            [
+                "name",
+                "in",
+                [
+                    "Payment Entry-Client"
+                ],
+            ],
+        ],
+    },
+    {
         "doctype": "DocType",
         "filters": [
             [

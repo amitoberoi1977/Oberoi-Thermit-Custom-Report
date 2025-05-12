@@ -21,7 +21,8 @@
   "amended_from",
   "is_stock_item",
   "has_batch_no",
-  "batch_no"
+  "batch_no",
+  "batch_item"
  ],
  "fields": [
   {
@@ -95,9 +96,9 @@
   {
    "fieldname": "bom_no",
    "fieldtype": "Link",
-   "hidden": 1,
    "label": "BOM No",
-   "options": "BOM"
+   "options": "BOM",
+   "read_only": 1
   },
   {
    "depends_on": "eval:!doc.bom_no",
@@ -133,10 +134,16 @@
    "label": "Company",
    "options": "Company",
    "read_only": 1
+  },
+  {
+   "fieldname": "batch_item",
+   "fieldtype": "Data",
+   "label": "Batch Item",
+   "read_only": 1
   }
  ],
  "is_submittable": 1,
- "modified": "2025-05-11 19:24:05.496823",
+ "modified": "2025-05-11 20:33:50.326293",
  "modified_by": "Administrator",
  "module": "Oberoi Thermit Custom Report",
  "name": "Work Progress Entry",
