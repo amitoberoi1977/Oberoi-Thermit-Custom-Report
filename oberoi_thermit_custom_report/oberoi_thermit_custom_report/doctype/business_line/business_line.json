@@ -13,6 +13,7 @@
   "column_break_6",
   "stock_account",
   "site_expense_account",
+  "non_sales_site_expense_cost_center",
   "default_series_section",
   "proforma_invoice_series"
  ],
@@ -70,9 +71,15 @@
    "fieldname": "proforma_invoice_series",
    "fieldtype": "Select",
    "label": "Proforma Invoice Series"
+  },
+  {
+   "fieldname": "non_sales_site_expense_cost_center",
+   "fieldtype": "Link",
+   "label": "Non Sales Site Expense Cost Center",
+   "options": "Cost Center"
   }
  ],
- "modified": "2025-05-01 09:52:33.516615",
+ "modified": "2025-05-14 10:29:37.405663",
  "modified_by": "Administrator",
  "module": "Oberoi Thermit Custom Report",
  "name": "Business Line",
