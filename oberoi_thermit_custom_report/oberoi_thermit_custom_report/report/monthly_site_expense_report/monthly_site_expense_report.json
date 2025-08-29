@@ -1,0 +1,32 @@
+{
+ "add_total_row": 0,
+ "creation": "2025-07-16 22:12:43.962039",
+ "disable_prepared_report": 1,
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "idx": 0,
+ "is_standard": "Yes",
+ "json": "{}",
+ "letter_head": "2024 OTPL",
+ "modified": "2025-07-16 22:12:47.023647",
+ "modified_by": "Administrator",
+ "module": "Oberoi Thermit Custom Report",
+ "name": "Monthly Site Expense Report",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Work Progress Entry",
+ "report_name": "Monthly Site Expense Report",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "PC-ATW"
+  },
+  {
+   "role": "PC-CMS"
+  }
+ ]
+}

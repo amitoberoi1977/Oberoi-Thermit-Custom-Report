@@ -88,5 +88,19 @@ frappe.ui.form.on('Work Progress Entry', {
 				}
 			})
 		}
+	},
+	select_date: function(frm) {
+		if(frm.doc.select_date) {
+			frm.call({
+				method:"auto_date_select",
+				doc:frm.doc,
+				callback:function(r){
+					
+				}
+			})
+		}else{
+			frappe.model.set_value(cdt,cdn,"date_from","")
+			frappe.model.set_value(cdt,cdn,"date_to","")
+		}
 	}
 });

@@ -5,13 +5,38 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.utils import nowtime,cint,flt
+from frappe.utils import nowtime,cint,flt,getdate, nowdate, add_to_date, get_first_day, get_last_day
 
 
 class WorkProgressEntry(Document):
 	def validate(self):
 		self.validate_warehouse_field()
 		self.set_item_details()
+		self.validate_unique()
+
+	def validate_unique(self):
+		if self.bom_no:
+			filters = [
+				["order_no","=",self.order_no],
+				["warehouse","=",self.warehouse],
+				["date_from","=",self.date_from],
+				["date_to","=",self.date_to],
+				["name","!=",self.name]
+			]
+			existing_records = frappe.get_all("Work Progress Entry",filters=filters,fields=["name"])
+			if existing_records:
+				frappe.throw("Work Progress Entry already exists for the selected order, warehouse and date range")
+		if not self.bom_no:
+			filters = [
+				["order_no","=",self.order_no],
+				["employee","=",self.employee],
+				["date_from","=",self.date_from],
+				["date_to","=",self.date_to],
+				["name","!=",self.name]
+			]
+			existing_records = frappe.get_all("Work Progress Entry",filters=filters,fields=["name"])
+			if existing_records:
+				frappe.throw("Work Progress Entry already exists for the selected order, employee and date range")			
 
 	def set_item_details(self):
 		item_doc = frappe.get_doc("Item",self.item)
@@ -123,6 +148,22 @@ class WorkProgressEntry(Document):
 			stock_entry_doc = frappe.get_doc("Stock Entry",stock_entry_name)
 			stock_entry_doc.cancel()
 
+
+	def auto_date_select(self):
+		today = getdate(nowdate())
+
+		if self.select_date == "1st of the current month":
+			# FROM: 1st of current month
+			self.date_from = get_first_day(today)
+			# TO: 15th of current month
+			self.date_to = getdate(f"{today.year}-{today.month}-15")
+
+		elif self.select_date == "16th of the previous month":
+			prev = add_to_date(today, months=-1)
+			# FROM: 16th of previous month
+			self.date_from = getdate(f"{prev.year}-{prev.month}-16")
+			# TO: last day of previous month
+			self.date_to = get_last_day(prev)
 
 @frappe.whitelist()
 def get_order_items(order_no):

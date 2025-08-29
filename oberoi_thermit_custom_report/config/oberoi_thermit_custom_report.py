@@ -17,6 +17,18 @@ def get_data():
 					"name": "Order Wise Ledger",
 					"doctype": "Sales Order",
 					"is_query_report": True			
+				},
+				{
+					"type": "report",
+					"name": "Entry Wise Report",
+					"doctype": "Work Progress Entry",
+					"is_query_report": True			
+				},
+				{
+					"type": "report",
+					"name": "Monthly Site Expense Report",
+					"doctype": "Work Progress Entry",
+					"is_query_report": True			
 				}
 			]
 		},

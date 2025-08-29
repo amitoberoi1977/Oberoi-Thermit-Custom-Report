@@ -5,6 +5,11 @@
 frappe.query_reports["Debtors Report"] = {
 	"filters": [
 		{
+			"fieldname":"date",
+			"label": __("To Date"),
+			"fieldtype": "Date"
+		},
+		{
 			"fieldname":"sales_order",
 			"label": __("Sales Order"),
 			"fieldtype": "Link",

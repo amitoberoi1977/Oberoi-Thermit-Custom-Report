@@ -16,6 +16,7 @@
   "column_break_5",
   "warehouse",
   "no_of_welds",
+  "select_date",
   "date_from",
   "date_to",
   "amended_from",
@@ -72,12 +73,14 @@
    "fieldname": "date_from",
    "fieldtype": "Date",
    "label": "Date From",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "date_to",
    "fieldtype": "Date",
    "label": "Date To",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -140,10 +143,16 @@
    "fieldtype": "Data",
    "label": "Batch Item",
    "read_only": 1
+  },
+  {
+   "fieldname": "select_date",
+   "fieldtype": "Select",
+   "label": "Select Date",
+   "options": "\n1st of the current month\n16th of the previous month"
   }
  ],
  "is_submittable": 1,
- "modified": "2025-05-11 20:33:50.326293",
+ "modified": "2025-08-14 17:18:01.110377",
  "modified_by": "Administrator",
  "module": "Oberoi Thermit Custom Report",
  "name": "Work Progress Entry",

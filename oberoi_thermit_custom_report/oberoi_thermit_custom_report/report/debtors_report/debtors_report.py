@@ -7,6 +7,32 @@ from frappe import _
 from frappe.utils import flt, cstr
 from erpnext.stock.utils import get_stock_balance
 
+COLUMN_INDEX = {
+    "sales_order": 0,
+    "customer_group": 1,
+    "business_line": 2,
+    "customer_name": 3,
+    "opening_debit_balance": 4,
+    "opening_credit_balance": 5,
+    "warehouse_details": 6,
+    "warehouse_value": 7,
+    "pi_details": 8,
+    "total_pi_amount": 9,
+    "si_details": 10,
+    "total_si_amount": 11,
+    "total_pi_receivables": 12,
+    "total_si_receivables": 13,
+    "total_receivables_claimed": 14,
+    "total_receivables_unclaimed": 15,
+    "balance_to_claim": 16,
+    "total_payment_received": 17,
+    "payment_entry_link": 18,
+    "balance_to_receive": 19,
+    "actual_balance_to_receive": 20,
+    "warehouse": 21,
+    "sales_order_end": 22,
+    "delivery_total": 23
+}
 
 def execute(filters=None):
     columns, data = [], []
@@ -155,7 +181,22 @@ def get_columns(filters=None):
 
 def get_data(filters):
     conditions = get_conditions(filters)
-    sales_order_data = frappe.db.sql("""SELECT so.name AS 'sales_order',
+    
+    # Build date conditions for each document type
+    pi_date_condition = ""
+    payment_date_condition = ""
+    transfer_date_condition = ""
+    si_date_condition = ""
+    dn_date_condition = ""
+    
+    if filters.get("date"):
+        pi_date_condition = "AND pi.posting_date <= %(date)s"
+        payment_date_condition = "AND posting_date <= %(date)s"
+        transfer_date_condition = "AND ptf.date <= %(date)s"
+        si_date_condition = "AND posting_date <= %(date)s"
+        dn_date_condition = "AND posting_date <= %(date)s"
+    
+    sql_query = """SELECT so.name AS 'sales_order',
        so.customer_group AS 'customer_group',
        so.business_line AS 'business_line',
        so.customer_name AS 'customer_name',
@@ -170,6 +211,21 @@ def get_data(filters):
             FROM `tabProforma Invoice` pi
             WHERE pi.docstatus = 1
             AND pi.sales_order = so.name
+            AND pi.date_of_equipment_set_receipt is null 
+            """ + pi_date_condition + """
+            AND (
+                pi.is_equipment_set_security != 1
+                OR (
+                    pi.is_equipment_set_security = 1
+                    AND (
+                        SELECT IFNULL(SUM(paid_amount), 0)
+                        FROM `tabPayment Entry`
+                        WHERE proforma_invoice = pi.name
+                        AND docstatus = 1
+                        """ + payment_date_condition + """
+                    ) < pi.total_including_tax
+                )
+            )
         ), 0) 
         - 
         IFNULL((
@@ -177,13 +233,15 @@ def get_data(filters):
             FROM `tabPayment Transfer From One Order To Another` ptf
             WHERE ptf.from_sales_order = so.name
             AND ptf.docstatus = 1
+            """ + transfer_date_condition + """
         ), 0)
     ) AS `total_pi_amount`,
        'Click Here' AS 'si_details',
   (SELECT sum(grand_total)
    FROM `tabSales Invoice`
    WHERE docstatus=1
-     AND sales_order=so.name) AS 'total_si_amount',
+     AND sales_order=so.name
+     """ + si_date_condition + """) AS 'total_si_amount',
        '' AS 'total_pi_receivable',
        '' AS 'total_si_receivable',
        '' AS 'total_receivable_claimed',
@@ -205,14 +263,17 @@ def get_data(filters):
    WHERE dn.docstatus=1
      AND dn.sales_order=so.name
      AND dn.invoice_sending_with_material='NO'
+     """ + dn_date_condition + """
      AND NOT EXISTS
        (SELECT si.name
         FROM `tabSales Invoice` AS si
         INNER JOIN `tabSales Invoice Item` AS sii on si.name=sii.parent
         WHERE sii.delivery_note=dn.name and si.docstatus=1)) AS 'delivery_total'
 FROM `tabSales Order` AS so
-WHERE so.docstatus<>2 %s""" % conditions, filters, as_list=1)
-    get_other_details(sales_order_data)
+WHERE so.docstatus<>2 """ + conditions
+    
+    sales_order_data = frappe.db.sql(sql_query, filters, as_list=1)
+    get_other_details(sales_order_data, filters)
     return filter_final_data(filters, sales_order_data)
 
 
@@ -243,14 +304,17 @@ def get_conditions(filters):
         conditions += " and so.customer_group = %(customer_group)s"
     if filters.get("item"):
         conditions += " and soi.item_code = %(item)s"
+    if filters.get("date"):
+        conditions += " and so.transaction_date <= %(date)s"
     return conditions
 
 
-def get_other_details(order_data):
+def get_other_details(order_data, filters):
     for order in order_data:
         items = frappe.get_doc("Sales Order", order[0]).items
         warehouse_balance = get_warehouse_balance_qty(order[0], items)
-        opening_debit,opening_credit = get_opening_balance(order[0])
+        opening_debit,opening_credit = get_opening_balance(order[0], filters)
+        compliance_total = get_complience_entry_total(order[0], filters)
         order[4]= opening_debit
         order[5]= opening_credit
         order[7] = warehouse_balance
@@ -262,11 +326,11 @@ def get_other_details(order_data):
             order[12] = 0  # Total PI receivables
         order[13] = order[11]  # Total SI receivables
         # Total Receivables (Claimed)
-        order[14] = flt(order[12], 0) + flt(order[13], 0) + flt(order[4],0)
+        order[14] = flt(order[12], 0) + flt(order[13], 0) + flt(order[4],0) + flt(compliance_total, 0)
         # Total Receivables (Including Unclaimed)
-        order[15] = flt(order[11], 0) + warehouse_balance + flt(order[4],0) - flt(order[5],0)
+        order[15] = flt(order[11], 0) + warehouse_balance + flt(order[4],0) - flt(order[5],0) + flt(compliance_total, 0)
         order[16] = flt(order[15], 0) - flt(order[14], 0)  # Balance to Claim
-        order[17] = get_payment_details(order)  # Total Payment Received
+        order[17] = get_payment_details(order, filters)  # Total Payment Received
         if order[17]:
             # Balance To receive As per Payment Terms
             order[19] = order[14] - order[17]
@@ -275,6 +339,23 @@ def get_other_details(order_data):
         else:
             order[19] = order[14]  # Balance To receive As per Payment Terms
             order[20] = order[15]  # Actual Balance to Receive (Incl Unclaimed)
+
+def get_complience_entry_total(sales_order, filters):
+    date_condition = ""
+    if filters.get("date"):
+        date_condition = "and date <= %s"
+    
+    query = """select sum(amount) from `tabCompliances Related Entry` 
+               where docstatus=1 and sales_order=%s """ + date_condition
+    
+    if filters.get("date"):
+        totals = frappe.db.sql(query, (sales_order, filters.get("date")))
+    else:
+        totals = frappe.db.sql(query, sales_order)
+    
+    if totals and totals[0][0]:
+        return totals[0][0]
+    return 0
 
 def get_warehouse_balance_qty(order, items):
     '''get billing warehouse value which is linked with sales order'''
@@ -300,49 +381,110 @@ def get_tax_rate(order,rate):
             rate = rate + rate * flt(tax[0].rate)/100
     return rate
 
-def get_payment_details(order):
-    order_data = frappe.db.sql("""SELECT sum(ifnull(p.paid_amount,0)+
-             (SELECT ifnull(sum(amount),0)
-              FROM `tabPayment Entry Deduction`
-              WHERE parent=p.name)+ifnull(p.sd_amount,0)+ifnull(p.sd_amount_1_percent,0)) AS 'payment_amount'
+def get_payment_details(order, filters):
+    date_condition = ""
+    if filters.get("date"):
+        date_condition = "AND p.posting_date <= %s"
+    
+    query = """SELECT SUM(
+    IFNULL(p.paid_amount, 0)
+    + (SELECT IFNULL(SUM(amount), 0) FROM `tabPayment Entry Deduction` WHERE parent = p.name)
+    + IFNULL(p.sd_amount, 0)
+    + IFNULL(p.sd_amount_1_percent, 0)
+) AS payment_amount
 FROM `tabPayment Entry` AS p
-WHERE p.sales_order=%s
-  AND p.docstatus=1
-  AND p.payment_type='Receive' AND p.name not like %s And p.name not like %s""", (order[0],'PEEMD%','PESDEMD%'), as_dict=1)
+WHERE p.sales_order = %s
+  AND p.docstatus = 1
+  AND p.payment_type = 'Receive'
+  AND p.name NOT LIKE %s
+  AND p.name NOT LIKE %s
+  """ + date_condition + """
+  AND (
+    p.proforma_invoice IS NULL
+    OR EXISTS (
+      SELECT 1 FROM `tabProforma Invoice` pi
+      WHERE pi.name = p.proforma_invoice
+      AND (
+        pi.is_equipment_set_security != 1
+        OR (
+          pi.is_equipment_set_security = 1
+          AND pi.date_of_equipment_set_receipt IS NOT NULL
+        )
+      )
+    )
+  )"""
+    
+    if filters.get("date"):
+        order_data = frappe.db.sql(query, (order[0],'PEEMD%','PESDEMD%', filters.get("date")), as_dict=1)
+    else:
+        order_data = frappe.db.sql(query, (order[0],'PEEMD%','PESDEMD%'), as_dict=1)
+    
     if len(order_data) >= 1:
         payment_amount = flt(order_data[0].payment_amount)
-        payment_amount = payment_amount + flt(get_transfer_amount_deduct(order[0]))
-        payment_amount = payment_amount + flt(get_transfer_amount_add(order[0]))
+        payment_amount = payment_amount + flt(get_transfer_amount_deduct(order[0], filters))
+        payment_amount = payment_amount + flt(get_transfer_amount_add(order[0], filters))
 
         return payment_amount
     else:
         return 0
 
 
-def get_transfer_amount_deduct(sales_order):
-    payment_transfer = frappe.db.sql("""select sum(amount)*-1 as 'amount' from `tabPayment Transfer From One Order To Another` where from_sales_order=%s and docstatus=1""",sales_order,as_dict=1)
+def get_transfer_amount_deduct(sales_order, filters):
+    date_condition = ""
+    if filters.get("date"):
+        date_condition = "and date <= %s"
+    
+    query = """select sum(amount)*-1 as 'amount' from `tabPayment Transfer From One Order To Another` 
+               where from_sales_order=%s and docstatus=1 """ + date_condition
+    
+    if filters.get("date"):
+        payment_transfer = frappe.db.sql(query, (sales_order, filters.get("date")), as_dict=1)
+    else:
+        payment_transfer = frappe.db.sql(query, sales_order, as_dict=1)
+    
     if len(payment_transfer) >= 1:
         return payment_transfer[0].amount
     else:
         return 0
 
-def get_transfer_amount_add(sales_order):
-    payment_transfer = frappe.db.sql("""select sum(amount) as 'amount' from `tabPayment Transfer From One Order To Another` where to_sales_order=%s and docstatus=1""",sales_order,as_dict=1)
+def get_transfer_amount_add(sales_order, filters):
+    date_condition = ""
+    if filters.get("date"):
+        date_condition = "and date <= %s"
+    
+    query = """select sum(amount) as 'amount' from `tabPayment Transfer From One Order To Another` 
+               where to_sales_order=%s and docstatus=1 """ + date_condition
+    
+    if filters.get("date"):
+        payment_transfer = frappe.db.sql(query, (sales_order, filters.get("date")), as_dict=1)
+    else:
+        payment_transfer = frappe.db.sql(query, sales_order, as_dict=1)
+    
     if len(payment_transfer) >= 1:
         return payment_transfer[0].amount
     else:
         return 0
 
-def get_opening_balance(order):
-    opening_data = frappe.db.sql(
-        """SELECT ifnull(sum(jva.debit),0) as 'debit',ifnull(sum(jva.credit),0) as 'credit'
+def get_opening_balance(order, filters):
+    date_condition = ""
+    if filters.get("date"):
+        date_condition = "AND jv.posting_date <= %s"
+    
+    query = """SELECT ifnull(sum(jva.debit),0) as 'debit',ifnull(sum(jva.credit),0) as 'credit'
 FROM `tabJournal Entry` AS jv
 INNER JOIN `tabJournal Entry Account` AS jva ON jv.name=jva.parent
 WHERE jva.party_type='Customer'
   AND jv.customer_group='Private'
   AND jv.is_opening='Yes'
   AND jv.docstatus=1
-  AND jv.sales_order=%s""", order, as_dict=1)
+  AND jv.sales_order=%s
+  """ + date_condition
+    
+    if filters.get("date"):
+        opening_data = frappe.db.sql(query, (order, filters.get("date")), as_dict=1)
+    else:
+        opening_data = frappe.db.sql(query, order, as_dict=1)
+    
     opening_debit = opening_credit = 0
     if len(opening_data) >= 1:
         if opening_data[0].debit:
