@@ -21,6 +21,9 @@ class WorkProgressEntry(Document):
 				["warehouse","=",self.warehouse],
 				["date_from","=",self.date_from],
 				["date_to","=",self.date_to],
+				["item","=",self.item],
+				["rate_of_item_in_sales_order","=",self.rate_of_item_in_sales_order],
+				["batch_no","=",self.batch_no],
 				["name","!=",self.name]
 			]
 			existing_records = frappe.get_all("Work Progress Entry",filters=filters,fields=["name"])
@@ -32,6 +35,8 @@ class WorkProgressEntry(Document):
 				["employee","=",self.employee],
 				["date_from","=",self.date_from],
 				["date_to","=",self.date_to],
+				["item","=",self.item],
+				["rate_of_item_in_sales_order","=",self.rate_of_item_in_sales_order],
 				["name","!=",self.name]
 			]
 			existing_records = frappe.get_all("Work Progress Entry",filters=filters,fields=["name"])

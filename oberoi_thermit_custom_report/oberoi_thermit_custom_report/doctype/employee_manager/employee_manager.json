@@ -1,5 +1,5 @@
 {
- "autoname": "field:employee",
+ "autoname": "format:{employee}-{department}",
  "creation": "2025-08-06 03:15:20.469563",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -14,8 +14,7 @@
    "fieldname": "employee",
    "fieldtype": "Link",
    "label": "Employee",
-   "options": "Employee",
-   "unique": 1
+   "options": "Employee"
   },
   {
    "fetch_from": "employee.user_id",
@@ -33,7 +32,7 @@
    "options": "Department"
   }
  ],
- "modified": "2025-08-14 16:40:42.820455",
+ "modified": "2025-09-02 18:40:08.393665",
  "modified_by": "Administrator",
  "module": "Oberoi Thermit Custom Report",
  "name": "Employee Manager",
