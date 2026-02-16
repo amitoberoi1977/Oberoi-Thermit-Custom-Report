@@ -72,6 +72,8 @@ class WorkProgressEntry(Document):
 	
 	def on_submit(self):
 		if not self.bom_no and not self.is_stock_item:
+			if "OGroupComp" in self.order_no:
+				return
 			proforma_invoice_naming_series = frappe.db.get_value("Business Line",self.business_vertical,"proforma_invoice_series",self.name)
 			if not proforma_invoice_naming_series:
 				frappe.throw("Please set proforma naming series in business line")
