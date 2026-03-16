@@ -6,7 +6,9 @@
  "engine": "InnoDB",
  "field_order": [
   "business_line",
+  "reporting_manager",
   "column_break_2",
+  "external_reporting_manager",
   "default_accounts_section",
   "supplier_creditor_account",
   "payroll_payable",
@@ -77,9 +79,21 @@
    "fieldtype": "Link",
    "label": "Non Sales Site Expense Cost Center",
    "options": "Cost Center"
+  },
+  {
+   "fieldname": "reporting_manager",
+   "fieldtype": "Link",
+   "label": "Reporting Manager",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "external_reporting_manager",
+   "fieldtype": "Link",
+   "label": "External Reporting Manager",
+   "options": "Employee Pull"
   }
  ],
- "modified": "2025-05-14 10:29:37.405663",
+ "modified": "2026-03-17 00:18:39.728109",
  "modified_by": "Administrator",
  "module": "Oberoi Thermit Custom Report",
  "name": "Business Line",
