@@ -22,6 +22,8 @@ class BusinessLine(Document):
         if self.reporting_manager or self.external_reporting_manager:
             employees = frappe.get_all("Employee",filters={"business_vertical": self.name,"is_team_leader":1},fields=["name","reports_to","external_report_to"])
             for employee in employees:
+                if employee.get("name") == self.reporting_manager:
+                    continue
                 manager_update = False
                 if self.reporting_manager and employee.get("reports_to") != self.reporting_manager:
                     manager_update = True
